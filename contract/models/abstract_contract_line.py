@@ -209,7 +209,7 @@ class ContractAbstractContractLine(models.AbstractModel):
                         "old_date", fields.Date.context_today(line)
                     ),
                 )
-                line.price_unit = product.price
+                line.price_unit = pricelist._get_product_price(product, quantity=1)
             else:
                 line.price_unit = line.specific_price
 
@@ -248,14 +248,20 @@ class ContractAbstractContractLine(models.AbstractModel):
 
         date = self.recurring_next_date or fields.Date.context_today(self)
         partner = self.contract_id.partner_id or self.env.user.partner_id
-        product = self.product_id.with_context(
-            lang=partner.lang,
-            partner=partner.id,
-            quantity=self.quantity,
-            date=date,
-            pricelist=self.contract_id.pricelist_id.id,
-            uom=self.uom_id.id,
-        )
-        vals["name"] = self.product_id.get_product_multiline_description_sale()
-        vals["price_unit"] = product.price
+        if self.product_id:
+            product = self.product_id.with_context(
+                lang=partner.lang,
+                partner=partner.id,
+                quantity=self.quantity,
+                date=date,
+                pricelist=self.contract_id.pricelist_id.id,
+                uom=self.uom_id.id,
+            )
+            vals["name"] = self.product_id.get_product_multiline_description_sale()
+            if self.contract_id.pricelist_id:
+                vals["price_unit"] = self.contract_id.pricelist_id._get_product_price(
+                    product, quantity=1
+                )
+            else:
+                vals["price_unit"] = 0.0
         self.update(vals)

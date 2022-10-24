@@ -8,7 +8,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 import logging
 
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.osv import expression
 from odoo.tests import Form
@@ -312,7 +312,8 @@ class ContractContract(models.Model):
     @api.depends(
         "contract_line_ids.recurring_next_date",
         "contract_line_ids.is_canceled",
-    )  # pylint: disable=missing-return
+    )
+    # pylint: disable=missing-return
     def _compute_recurring_next_date(self):
         for contract in self:
             recurring_next_date = contract.contract_line_ids.filtered(
@@ -378,7 +379,7 @@ class ContractContract(models.Model):
         self.pricelist_id = partner.property_product_pricelist.id
         self.fiscal_position_id = partner.env[
             "account.fiscal.position"
-        ].get_fiscal_position(partner.id)
+        ]._get_fiscal_position(partner)
         if self.contract_type == "purchase":
             self.payment_term_id = partner.property_supplier_payment_term_id
         else:
@@ -560,10 +561,12 @@ class ContractContract(models.Model):
                     # nullifying line. We should then cleanup certain values.
                     del invoice_line_vals["company_id"]
                     del invoice_line_vals["company_currency_id"]
-                    invoice_vals["invoice_line_ids"].append((0, 0, invoice_line_vals))
+                    invoice_vals["invoice_line_ids"].append(
+                        Command.create(invoice_line_vals)
+                    )
             invoices_values.append(invoice_vals)
             # Force the recomputation of journal items
-            del invoice_vals["line_ids"]
+            # del invoice_vals["line_ids"] # TODO: Check why line_ids is missing here
             contract_lines._update_recurring_next_date()
         return invoices_values
 

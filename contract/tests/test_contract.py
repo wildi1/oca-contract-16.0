@@ -242,12 +242,12 @@ class TestContract(TestContractBase):
         self.assertEqual(self.acct_line.price_unit, 1100)
         # Try to write other price
         self.acct_line.price_unit = 10
-        self.acct_line.refresh()
+        self.acct_line.invalidate_model()
         self.assertEqual(self.acct_line.price_unit, 1100)
         # Now disable automatic price
         self.acct_line.automatic_price = False
         self.acct_line.price_unit = 10
-        self.acct_line.refresh()
+        self.acct_line.invalidate_model()
         self.assertEqual(self.acct_line.price_unit, 10)
 
     def test_contract(self):
@@ -266,7 +266,7 @@ class TestContract(TestContractBase):
 
     def test_contract_level_recurrence(self):
         self.contract3.recurring_create_invoice()
-        self.contract3.flush()
+        self.contract3.flush_recordset()
 
     def test_contract_daily(self):
         recurring_next_date = to_date("2018-02-23")
@@ -608,7 +608,7 @@ class TestContract(TestContractBase):
         self.contract.copy()
         purchase_count = self.partner.purchase_contract_count + 1
         self.contract2.copy()
-        self.partner.refresh()
+        self.partner.invalidate_model()
         self.assertEqual(self.partner.sale_contract_count, sale_count)
         self.assertEqual(self.partner.purchase_contract_count, purchase_count)
 
@@ -2045,7 +2045,8 @@ class TestContract(TestContractBase):
         ]
         self.assertEqual(set(lines.mapped("state")), set(states))
         # Test search method
-        lines.flush()  # Needed for computed stored fields like termination_notice_date
+        lines.flush_recordset()  # Needed for computed stored fields
+        # like termination_notice_date
         for state in states:
             lines = self.env["contract.line"].search([("state", "=", state)])
             self.assertTrue(lines, state)
@@ -2152,17 +2153,17 @@ class TestContract(TestContractBase):
             action["context"]["default_contract_line_id"], self.acct_line.id
         )
 
-    def test_purchase_fields_view_get(self):
+    def test_purchase_get_view(self):
         purchase_tree_view = self.env.ref("contract.contract_line_supplier_tree_view")
         purchase_form_view = self.env.ref("contract.contract_line_supplier_form_view")
-        view = self.acct_line.with_context(
-            default_contract_type="purchase"
-        ).fields_view_get(view_type="tree")
-        self.assertEqual(view["view_id"], purchase_tree_view.id)
-        view = self.acct_line.with_context(
-            default_contract_type="purchase"
-        ).fields_view_get(view_type="form")
-        self.assertEqual(view["view_id"], purchase_form_view.id)
+        view = self.acct_line.with_context(default_contract_type="purchase").get_view(
+            view_type="tree"
+        )
+        self.assertEqual(view["id"], purchase_tree_view.id)
+        view = self.acct_line.with_context(default_contract_type="purchase").get_view(
+            view_type="form"
+        )
+        self.assertEqual(view["id"], purchase_form_view.id)
 
     def test_multicompany_partner_edited(self):
         """Editing a partner with contracts in several companies works."""
@@ -2185,12 +2186,12 @@ class TestContract(TestContractBase):
             company_id=company2.id
         ).write({"is_company": False, "parent_id": parent_partner.id})
 
-    def test_sale_fields_view_get(self):
+    def test_sale_get_view(self):
         sale_form_view = self.env.ref("contract.contract_line_customer_form_view")
-        view = self.acct_line.with_context(
-            default_contract_type="sale"
-        ).fields_view_get(view_type="form")
-        self.assertEqual(view["view_id"], sale_form_view.id)
+        view = self.acct_line.with_context(default_contract_type="sale").get_view(
+            view_type="form"
+        )
+        self.assertEqual(view["id"], sale_form_view.id)
 
     def test_contract_count_invoice(self):
         self.contract.recurring_create_invoice()

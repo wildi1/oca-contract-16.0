@@ -35,10 +35,6 @@ class ContractLine(models.Model):
         string="Analytic account",
         comodel_name="account.analytic.account",
     )
-    analytic_tag_ids = fields.Many2many(
-        comodel_name="account.analytic.tag",
-        string="Analytic Tags",
-    )
     date_start = fields.Date(required=True)
     date_end = fields.Date(compute="_compute_date_end", store=True, readonly=False)
     termination_notice_date = fields.Date(
@@ -108,7 +104,8 @@ class ContractLine(models.Model):
 
     @api.depends(
         "last_date_invoiced", "date_start", "date_end", "contract_id.last_date_invoiced"
-    )  # pylint: disable=missing-return
+    )
+    # pylint: disable=missing-return
     def _compute_next_period_date_start(self):
         """Rectify next period date start if another line in the contract has been
         already invoiced previously when the recurrence is by contract.
@@ -548,24 +545,22 @@ class ContractLine(models.Model):
             self.last_date_invoiced, self.recurring_next_date
         )
         line_form = move_form.invoice_line_ids.new()
-        line_form.display_type = self.display_type
+        line_form.display_type = self.display_type or "product"
         line_form.product_id = self.product_id
         invoice_line_vals = line_form._values_to_save(all_fields=True)
         name = self._insert_markers(dates[0], dates[1])
+        # TODO: We lost the analytic_account_id on invoice line vals
+        #  - need to check what to use now
         invoice_line_vals.update(
             {
-                "account_id": invoice_line_vals["account_id"]
-                if "account_id" in invoice_line_vals and not self.display_type
-                else False,
                 "quantity": self._get_quantity_to_invoice(*dates),
                 "product_uom_id": self.uom_id.id,
                 "discount": self.discount,
                 "contract_line_id": self.id,
                 "sequence": self.sequence,
                 "name": name,
-                "analytic_account_id": self.analytic_account_id.id,
-                "analytic_tag_ids": [(6, 0, self.analytic_tag_ids.ids)],
                 "price_unit": self.price_unit,
+                "display_type": self.display_type or "product",
             }
         )
         return invoice_line_vals
@@ -1071,9 +1066,7 @@ class ContractLine(models.Model):
         to_renew.renew()
 
     @api.model
-    def fields_view_get(
-        self, view_id=None, view_type="form", toolbar=False, submenu=False
-    ):
+    def get_view(self, view_id=None, view_type="form", **options):
         default_contract_type = self.env.context.get("default_contract_type")
         if view_type == "tree" and default_contract_type == "purchase":
             view_id = self.env.ref("contract.contract_line_supplier_tree_view").id
@@ -1082,7 +1075,7 @@ class ContractLine(models.Model):
                 view_id = self.env.ref("contract.contract_line_supplier_form_view").id
             elif default_contract_type == "sale":
                 view_id = self.env.ref("contract.contract_line_customer_form_view").id
-        return super().fields_view_get(view_id, view_type, toolbar, submenu)
+        return super().get_view(view_id, view_type, **options)
 
     def unlink(self):
         """stop unlink uncnacled lines"""
