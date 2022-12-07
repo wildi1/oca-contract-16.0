@@ -19,6 +19,7 @@ class ContractLine(models.Model):
     _inherit = [
         "contract.abstract.contract.line",
         "contract.recurrency.mixin",
+        "analytic.mixin",
     ]
     _order = "sequence,id"
 
@@ -549,14 +550,13 @@ class ContractLine(models.Model):
         line_form.product_id = self.product_id
         invoice_line_vals = line_form._values_to_save(all_fields=True)
         name = self._insert_markers(dates[0], dates[1])
-        # TODO: We lost the analytic_account_id on invoice line vals
-        #  - need to check what to use now
         invoice_line_vals.update(
             {
                 "quantity": self._get_quantity_to_invoice(*dates),
                 "product_uom_id": self.uom_id.id,
                 "discount": self.discount,
                 "contract_line_id": self.id,
+                "analytic_distribution": self.analytic_distribution,
                 "sequence": self.sequence,
                 "name": name,
                 "price_unit": self.price_unit,

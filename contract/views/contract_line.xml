@@ -48,6 +48,11 @@
                         name="analytic_account_id"
                         groups="analytic.group_analytic_accounting"
                     />
+                    <field
+                        name="analytic_distribution"
+                        widget="analytic_distribution"
+                        groups="analytic.group_analytic_accounting"
+                    />
                 </group>
             </group>
         </field>
@@ -96,6 +101,11 @@
                 <field name="name" />
                 <field
                     name="analytic_account_id"
+                    groups="analytic.group_analytic_accounting"
+                />
+                <field
+                    name="analytic_distribution"
+                    widget="analytic_distribution"
                     groups="analytic.group_analytic_accounting"
                 />
                 <field name="quantity" />
