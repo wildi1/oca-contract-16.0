@@ -35,8 +35,9 @@ class ContractAbstractContractLine(models.AbstractModel):
         "applying the pricelist to the product. If not, you will be "
         "able to introduce a manual price",
     )
-    # Just to have a currency_id here - will get overwriten in contract.line model with the related currency from the contract
-    currency_id = fields.Many2one('res.currency')
+    # Just to have a currency_id here - will get overwriten in contract.line
+    # model with the related currency from the contract
+    currency_id = fields.Many2one("res.currency")
     specific_price = fields.Monetary()
     price_unit = fields.Monetary(
         string="Unit Price",

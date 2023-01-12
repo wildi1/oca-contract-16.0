@@ -68,7 +68,8 @@
                     string="Legend (for the markers inside invoice lines description)"
                 >
                     <div colspan="2">
-                        <p> <strong>#START#</strong>: Start date of the invoiced period</p>
+                        <p> <strong
+                            >#START#</strong>: Start date of the invoiced period</p>
                         <p> <strong>#END#</strong>: End date of the invoiced period</p>
                     </div>
                 </group>

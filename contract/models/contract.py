@@ -428,7 +428,9 @@ class ContractContract(models.Model):
                     "company": self.company_id.name or "",
                 }
             )
-        invoice_type = "in_invoice" if self.contract_type == "purchase" else "out_invoice"
+        invoice_type = (
+            "in_invoice" if self.contract_type == "purchase" else "out_invoice"
+        )
         vals = {
             "move_type": invoice_type,
             "company_id": self.company_id.id,
@@ -438,21 +440,26 @@ class ContractContract(models.Model):
             "invoice_date": date_invoice,
             "journal_id": journal.id,
             "invoice_origin": self.name,
-            "invoice_line_ids": [
-            ],
+            "invoice_line_ids": [],
         }
         if self.payment_term_id:
-            vals.update({
-                'invoice_payment_term_id': self.payment_term_id.id,
-            })
+            vals.update(
+                {
+                    "invoice_payment_term_id": self.payment_term_id.id,
+                }
+            )
         if self.fiscal_position_id:
-            vals.update({
-                'fiscal_position_id': self.fiscal_position_id.id,
-            })
+            vals.update(
+                {
+                    "fiscal_position_id": self.fiscal_position_id.id,
+                }
+            )
         if invoice_type == "out_invoice" and self.user_id:
-            vals.update({
-                'invoice_user_id': self.user_id.id,
-            })
+            vals.update(
+                {
+                    "invoice_user_id": self.user_id.id,
+                }
+            )
         return vals
 
     def action_contract_send(self):
