@@ -35,13 +35,15 @@ class ContractAbstractContractLine(models.AbstractModel):
         "applying the pricelist to the product. If not, you will be "
         "able to introduce a manual price",
     )
-    specific_price = fields.Float()
-    price_unit = fields.Float(
+    # Just to have a currency_id here - will get overwriten in contract.line model with the related currency from the contract
+    currency_id = fields.Many2one('res.currency')
+    specific_price = fields.Monetary()
+    price_unit = fields.Monetary(
         string="Unit Price",
         compute="_compute_price_unit",
         inverse="_inverse_price_unit",
     )
-    price_subtotal = fields.Float(
+    price_subtotal = fields.Monetary(
         compute="_compute_price_subtotal",
         digits="Account",
         string="Sub Total",
@@ -191,7 +193,7 @@ class ContractAbstractContractLine(models.AbstractModel):
         from the pricelist otherwise.
         """
         for line in self:
-            if line.automatic_price:
+            if line.automatic_price and line.product_id:
                 pricelist = (
                     line.contract_id.pricelist_id
                     or line.contract_id.partner_id.with_company(

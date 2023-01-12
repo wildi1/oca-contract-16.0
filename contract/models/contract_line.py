@@ -32,6 +32,7 @@ class ContractLine(models.Model):
         auto_join=True,
         ondelete="cascade",
     )
+    currency_id = fields.Many2one(related='contract_id.currency_id')
     analytic_account_id = fields.Many2one(
         string="Analytic account",
         comodel_name="account.analytic.account",
