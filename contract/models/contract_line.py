@@ -541,30 +541,24 @@ class ContractLine(models.Model):
             else:
                 rec.create_invoice_visibility = False
 
-    def _prepare_invoice_line(self, move_form):
+    def _prepare_invoice_line(self):
         self.ensure_one()
         dates = self._get_period_to_invoice(
             self.last_date_invoiced, self.recurring_next_date
         )
-        line_form = move_form.invoice_line_ids.new()
-        line_form.display_type = self.display_type or "product"
-        line_form.product_id = self.product_id
-        invoice_line_vals = line_form._values_to_save(all_fields=True)
         name = self._insert_markers(dates[0], dates[1])
-        invoice_line_vals.update(
-            {
-                "quantity": self._get_quantity_to_invoice(*dates),
-                "product_uom_id": self.uom_id.id,
-                "discount": self.discount,
-                "contract_line_id": self.id,
-                "analytic_distribution": self.analytic_distribution,
-                "sequence": self.sequence,
-                "name": name,
-                "price_unit": self.price_unit,
-                "display_type": self.display_type or "product",
-            }
-        )
-        return invoice_line_vals
+        return {
+            "quantity": self._get_quantity_to_invoice(*dates),
+            "product_uom_id": self.uom_id.id,
+            "discount": self.discount,
+            "contract_line_id": self.id,
+            "analytic_distribution": self.analytic_distribution,
+            "sequence": self.sequence,
+            "name": name,
+            "price_unit": self.price_unit,
+            "display_type": self.display_type or "product",
+            "product_id": self.product_id.id,
+        }
 
     def _get_period_to_invoice(
         self, last_date_invoiced, recurring_next_date, stop_at_date_end=True
