@@ -46,7 +46,6 @@ class ContractAbstractContractLine(models.AbstractModel):
     )
     price_subtotal = fields.Monetary(
         compute="_compute_price_subtotal",
-        digits="Account",
         string="Sub Total",
     )
     discount = fields.Float(
