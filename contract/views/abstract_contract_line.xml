@@ -14,16 +14,13 @@
                     <field name="specific_price" invisible="1" />
                     <field name="currency_id" invisible="1" />
                     <field colspan="1" name="product_uom_category_id" invisible="1" />
-                    <label
-                        for="product_id"
-                        attrs="{'invisible': [('display_type', '!=', False)]}"
-                    />
-                    <field
-                        colspan="1"
-                        name="product_id"
-                        attrs="{'required': [('display_type', '=', 'product')],'invisible': [('display_type', '!=', False)]}"
-                        nolabel="1"
-                    />
+                    <group>
+                        <field
+                            colspan="1"
+                            name="product_id"
+                            attrs="{'required': [('display_type', '=', 'product')],'invisible': [('display_type', '!=', False)]}"
+                        />
+                    </group>
                     <group
                         col="6"
                         attrs="{'invisible': [('display_type', '!=', False)]}"

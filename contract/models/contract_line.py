@@ -105,7 +105,11 @@ class ContractLine(models.Model):
     )
 
     @api.depends(
-        "last_date_invoiced", "date_start", "date_end", "contract_id.last_date_invoiced"
+        "last_date_invoiced",
+        "date_start",
+        "date_end",
+        "contract_id.last_date_invoiced",
+        "contract_id.contract_line_ids.last_date_invoiced",
     )
     # pylint: disable=missing-return
     def _compute_next_period_date_start(self):
@@ -145,7 +149,15 @@ class ContractLine(models.Model):
             else:
                 rec.termination_notice_date = False
 
-    @api.depends("is_canceled", "date_start", "date_end", "is_auto_renew")
+    @api.depends(
+        "is_canceled",
+        "date_start",
+        "date_end",
+        "is_auto_renew",
+        "manual_renew_needed",
+        "termination_notice_date",
+        "successor_contract_line_id",
+    )
     def _compute_state(self):
         today = fields.Date.context_today(self)
         for rec in self:
